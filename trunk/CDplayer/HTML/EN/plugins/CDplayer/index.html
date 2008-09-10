@@ -1,0 +1,12 @@
+[%- pageicon = 'CDplayer' -%]
+[%- pagetitle = "PLUGIN_CDPLAYER_CDPLAYERWEB_TITLE" | string -%]
+[%- pwd_list = BLOCK -%]/
+        <a href="[% webroot %]plugins/CDplayer/index.html?player=[% player | uri %]">
+                [% "PLUGIN_CDPLAYER" | string %]
+        </a>
+[% END -%]
+[%- PROCESS pageheader.html %]
+
+[% IF errormsg %]<p>[% errormsg %]</p>[% END %]
+
+[%- PROCESS pagefooter.html -%]
