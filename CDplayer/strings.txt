@@ -1,0 +1,125 @@
+# String file for CDplayer plugin
+
+PLUGIN_CDPLAYER
+	EN	CDplayer
+
+PLUGIN_CDPLAYER_DESC
+	EN	The CDplayer plugin is designed to pass a command line to mplayer and run  mplayer streaming through SqueezeCenter
+
+PLUGIN_CDPLAYER_NOT_FOUND
+	EN	cdd2wav  not found
+
+PLUGIN_CDPLAYER_NO_CONVERT_CMD
+	EN	CDplay Convert Error - Check File Types
+
+CDPLAY
+	EN	CD player 
+
+PLUGIN_CDPLAYER_PAUSESTOP
+	EN	Pause button stops playing CD track. 
+	
+PLUGIN_CDPLAYER_PAUSESTOP_DESC
+	EN	If Enabled - Pause will stop playing of CD track. On some systems,  if pause is pressed when playing a track and user presses eject to remove CD, the system can hang. Ensuring tracks are stopped prevents this system hang.
+
+PLUGIN_CDPLAYER_WEB_DEVICE
+	EN	CD Device Name
+
+PLUGIN_CDPLAYER_WEB_DEVICE_DESC
+	EN	Path to the CD-ROM device to use for reading the CD on Linux.  Typically /dev/cdrom.
+
+PLUGIN_CDPLAYER_WEB_DEVICE_WIN
+	EN	CD-ROM Device description on Windows
+
+PLUGIN_CDPLAYER_WEB_DEVICE_DESC_WIN
+	EN	Name of CDROM device on Windows - can be found using Properties on the drive letter.
+
+PLUGIN_CDPLAYER_WEB_DEVICE_OSX
+	EN	CD reader device on Mac/OSX systems
+
+PLUGIN_CDPLAYER_WEB_DEVICE_DESC_OSX
+	EN	Name of device on Mac/OSX to be used to play CDs.  On system with either CDROM or DVD drive use entry.  For system with more than one drive, trial and error using the entries further down the list may be needed to determine correct setting.
+
+PLUGIN_CDPLAYER_USEDB_DESC
+	EN	Select the database used to lookup CD title & track info
+
+PLUGIN_CDPLAYER_USEMUSICBRAINZ
+	EN	Lookup CDs on MusicBrainz
+
+PLUGIN_CDPLAYER_USEMUSICBRAINZ_DESC
+	EN	CDplayer will do album searches the selected database only. .
+
+PLUGIN_CDPLAYER_USECDDB
+	EN	Lookup CDs on CDDB database
+
+PLUGIN_CDPLAYER_USECDDB_DESC
+	EN	If checked, album search will lookup configured CDDB database.
+
+PLUGIN_CDPLAYER_USENODB
+	EN	Do not lookup any CD database
+
+PLUGIN_CDPLAYER_USENODB_DESC
+	EN	Do not lookup CDs on CDDB or MusicBrainz database
+
+PLUGIN_CDPLAYER_LOAD_CD
+	EN	CDplayer
+
+PLUGIN_CDPLAYER_NO_TRACKS_FOUND
+	EN	No tracks found.
+
+PLUGIN_CDPLAYER_NO_CD_LOADED
+	EN	Either: No CD, incompatible CD or wrong CD drive selected
+
+PLUGIN_CDPLAYER_NO_RELEASE_INFO
+	EN	No release info found: Track info only in CD raw menu
+
+PLUGIN_CDPLAYER_BY
+	EN	 by 
+
+PLUGIN_CDPLAYER_CD_RAW
+	EN	CD Tracks - raw format
+
+PLUGIN_CDPLAYER_CDTRACK_FORMAT
+	EN	CD Track %02d (%s)
+
+PLUGIN_CDPLAYER_UNKNOWN_ALBUM
+	EN	Unknown Album
+
+PLUGIN_CDPLAYER_UNKNOWN_ARTIST
+	EN	Unknown Artist
+
+PLUGIN_CDPLAYER_UNKNOWN_TRACK
+	EN	Unknown Track
+
+PLUGIN_CDPLAYER_CD_PLAYER_MENU
+	EN	CD player
+
+PLUGIN_CDPLAYER_LOAD_CD_MENU
+	EN	Load CD
+
+PLUGIN_CDPLAYER_LOADING_CD
+	EN	Loading CD & Finding CD Album info 
+
+PLUGIN_CDPLAYER_LOADCD_ERROR
+	EN	No CD or bad CD or wrong CD drive used
+
+PLUGIN_CDPLAYER_PLEASE_WAIT
+	EN	Please wait 
+
+PLUGIN_CDPLAYER_LOADING_CD_WAIT
+	EN	Please wait - Loading CD index
+
+PLUGIN_CDPLAYER_WEB_ERROR
+	EN	Error loading CD index - (%d) %s'
+
+PLUGIN_CDPLAYER_CLI_ERROR
+	EN	Error loading CD index - '
+
+PLUGIN_CDPLAYER_CDPLAYERWEB_TITLE
+	EN	CDplayer
+
+PLUGIN_CDPLAYER_TRY_AGAIN
+	EN	Wait and then try again
+
+PLUGIN_CDPLAYER_CD_BUSY
+	EN	CD drive is in use.
+
