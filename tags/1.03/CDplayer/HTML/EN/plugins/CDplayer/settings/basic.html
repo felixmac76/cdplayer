@@ -1,0 +1,44 @@
+[% PROCESS settings/header.html %]
+  [% WRAPPER settingSection %]
+  	[% WRAPPER setting title="PLUGIN_CDPLAYER_PAUSESTOP" desc="PLUGIN_CDPLAYER_PAUSESTOP_DESC" %]
+	    <input type="checkbox" name="pausestop" id="pausestop"
+		[% IF prefs.pausestop == 1%] checked="checked" [% END %] value="1"
+	    />
+	[% END %]
+
+	[% WRAPPER settingGroup title="PLUGIN_CDPLAYER_USEDB_DESC" desc="PLUGIN_CDPLAYER_USEMUSICBRAINZ_DESC"%]
+		<input type="radio" name="usemusicbrainz" value="0" [% IF prefs.usemusicbrainz == 0 %]checked[% END %]>[% 'PLUGIN_CDPLAYER_USECDDB' | getstring %]<br/>
+		<input type="radio" name="usemusicbrainz" value="1" [% IF prefs.usemusicbrainz == 1 %]checked[% END %]>[% 'PLUGIN_CDPLAYER_USEMUSICBRAINZ' | getstring %]<br/>
+		<input type="radio" name="usemusicbrainz" value="2" [% IF prefs.usemusicbrainz == 2 %]checked[% END %]>[% 'PLUGIN_CDPLAYER_USENODB' | getstring %]<br/>
+	[% END %]
+
+	[% IF underlyingos == 0 %]
+		[% WRAPPER setting title="PLUGIN_CDPLAYER_WEB_DEVICE" desc="PLUGIN_CDPLAYER_WEB_DEVICE_DESC" %]
+		    <input type="text" class="stdedit" name="device" id="device" value="[% prefs.device %]" size="20" />
+		[% END %]
+	[% END %]
+
+	[% IF underlyingos == 1 %]
+		[% WRAPPER setting title="PLUGIN_CDPLAYER_WEB_DEVICE_WIN" desc="PLUGIN_CDPLAYER_WEB_DEVICE_DESC_WIN" %]
+			<select class="stdedit" name="cddevice" id="cddevice">
+			[% FOREACH option = cddevicelist %]
+				<option [% IF prefs.cddevice == option.key %]selected [% END %]value="[% option.key %]">[% option.value %]</option>
+			[%- END -%]
+			</select>
+		[% END %]
+	[% END %]
+
+	[% IF underlyingos == 2 %]
+		[% WRAPPER setting title="PLUGIN_CDPLAYER_WEB_DEVICE_OSX" desc="PLUGIN_CDPLAYER_WEB_DEVICE_DESC_OSX" %]
+			<select class="stdedit" name="cddevice" id="cddevice">
+			[% FOREACH option = cddevicelist %]
+				<option [% IF prefs.cddevice == option.key %]selected [% END %]value="[% option.key %]">[% option.value %]</option>
+			[%- END -%]
+			</select>
+		[% END %]
+	[% END %]
+
+
+  [% END %]
+[% PROCESS settings/footer.html %]
+
