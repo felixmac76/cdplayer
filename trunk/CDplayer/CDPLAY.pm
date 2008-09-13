@@ -32,6 +32,8 @@ use constant CDSTOPPED => 0;
 
 Slim::Player::ProtocolHandlers->registerHandler('cdplay', __PACKAGE__);
 
+sub isRemote { 1 }
+
 sub new {
 	my $class = shift;
 	my $args  = shift;
@@ -174,6 +176,13 @@ sub getMetadataFor {
 	};
 }
 
+# XXX - I think that we scan the track twice, once from the playlist and then again when playing
+sub scanUrl {
+	my ( $class, $url, $args ) = @_;
+	
+	Slim::Utils::Scanner::Remote->scanURL($url, $args);
+
+}
 1;
 
 # Local Variables:

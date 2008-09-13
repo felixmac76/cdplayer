@@ -156,14 +156,15 @@ sub LoadCDandIdentify
 		$device = $prefs->get('cddevice');
 	}
 
+	my $cmdparams;
 	my $command = "cdda2wav";
  
-	if ($osdetected eq 'mac') {
-		$command = "cdda2wavosx.sh";
-	};
 
-	my $cmdparams  = "device=$device -verbose-level=toc -N -g -J";
-
+#	if ($osdetected ne 'win') {
+		$cmdparams  = "device=$device -verbose-level=toc -N -g -J";
+#	} else { 
+#		$cmdparams  = "-device $device -verbose-level=toc -N -g -J";
+#	};
 	$log->debug("Create Fork to read CD TOC using cdda2wav on $osdetected device $device ");
 
 	$self->{tocfork} = Plugins::CDplayer::Fork->new(
@@ -552,11 +553,38 @@ $log->debug ("Prefs UseMusicbrainz = " . $prefs->get('usemusicbrainz'));
 
 		}
   	}
+
 	
 #
 # Do Raw now
 #
 	if ( $self->{loaderror} != LOADCD_ERROR_NOCD) {
+
+#
+# If CD-Text is defined create a menu with CD-Text info
+#
+		if (defined($self->{albumtitle}) ) {
+			$output .= "\n\t<outline text=\"" . URI::Escape::uri_escape( string('PLUGIN_CDPLAYER_CDTEXT') . $self->{albumtitle} . string('PLUGIN_CDPLAYER_BY') . $self->{albumartist}) . "\" type=\"playlist\" >";
+
+			for ( my $tracknum = $self->{firstTrack}; $tracknum <= $self->{lastTrack}; $tracknum++)  {
+				my $trackparams=
+						'?AlbumTitle='  . URI::Escape::uri_escape_utf8($self->{albumtitle})                .
+						'&AlbumArtist=' . URI::Escape::uri_escape_utf8($self->{albumartist})              .
+						'&TrackTitle='  . URI::Escape::uri_escape_utf8($self->{tracktitles}[$tracknum])   .
+						'&TrackArtist=' . URI::Escape::uri_escape_utf8($self->{trackartists}[$tracknum])  .
+						'&Lengths='     . $self->{lengths}[$tracknum] .
+						'&Offsets='     . $self->{offsets}[$tracknum] ;
+
+				$output .= sprintf "\n\t\t\t<outline text=\"" . HTML::Entities::encode_entities(decode("UTF8",( $self->{tracktitles}[$tracknum] . string('PLUGIN_CDPLAYER_BY') . $self->{trackartists}[$tracknum] . ' ('. $self->{durations}[$tracknum] .')' ))) . "\" url=\"cdplay://%d%s\" type=\"audio\"/>",
+						, $tracknum,HTML::Entities::encode_entities($trackparams) ;	
+			}
+  			$output .="\n\t</outline>";
+		}
+
+#
+#  Dop the raw outpout
+#
+
 		$output .= "\n\t<outline text=\"" . string('PLUGIN_CDPLAYER_CD_RAW') . "\" type=\"playlist\">";
 
 		for ( my $tracknum = $self->{firstTrack}; $tracknum <= $self->{lastTrack}; $tracknum++)  {
@@ -606,6 +634,8 @@ sub killOrphans
 
 use constant MAX_CD_TRACKS => 99;
 
+use Data::Dumper;
+use Text::ParseWords;
 sub parsetoc
 {
 	my $self = shift;
@@ -618,6 +648,11 @@ sub parsetoc
 	my @lengths    = ();
 	my @durations  = ();
 
+	my $tocAlbumTitle;
+	my $tocAlbumArtist;
+	my @tocTrackTitle = ();
+	my @tocTrackArtist= ();
+
 	my $firstTrack = -1;
 	my $lastTrack;
 
@@ -628,7 +663,7 @@ sub parsetoc
 	$lastoffset               = 0;
 
 	my @cdinfo = split /^/, $toc;
-
+	my $cdtextdetected;
 
 	foreach my $line (@cdinfo) {
 #	T01:       0  3:37.51 audio linear copydenied stereo title '' from ''
@@ -639,8 +674,16 @@ sub parsetoc
 #	T22:  296697  5:47.57 audio linear copydenied stereo title '' from ''
 #	Leadout:  322779
 
-		my @chunks = split " ",$line;
+#
+#      my @fields = m/\s* ( '(?:(?!(?<!\\)').)*' | +\S+)/gx;
 
+#
+
+		my @chunks = split " ",$line;
+		my @parsewords = quotewords('\\s+', 0, $line);
+#			$log->debug("ParseWord = ". Dumper(@parsewords));
+
+#			$log->debug("Chunks = ". Dumper(@chunks));
 #	$log->debug("Line: $line");;
 		if (($chunks[0] eq 'CDINDEX') && ($chunks[1] eq 'discid:') ) {
 			$log->debug("MusicBrainz DiscId is " . $chunks[2]);
@@ -649,6 +692,24 @@ sub parsetoc
 		if (($chunks[0] eq 'CDDB') && ($chunks[1] eq 'discid:') ) {
 			$log->debug("CDDB DiscId is " . $chunks[2]);
 		} 
+		if (($chunks[0] eq 'CD-Text:') && ($chunks[1] eq 'detected') ) {
+			$log->debug("CD-Text detected on disc " );
+			$cdtextdetected = 1;
+		} 
+
+		if (($chunks[0] eq 'Album') && ($chunks[1] eq 'title:') ) {
+			if ($cdtextdetected) {
+				$tocAlbumTitle  = $parsewords[2];
+				$tocAlbumTitle  =~ s/\\'/'/g;
+				$tocAlbumArtist = $parsewords[4];
+				$tocAlbumArtist  =~ s/\\'/'/g;
+
+				$log->debug("Album  Title=\"". $parsewords[2] . "\"  Artist =\"" . $parsewords[4] . "\"");				
+
+			};
+
+			
+		}
 
 		if (($chunks[0] =~ m/^\s*T(\d+):/) && ($chunks[3] eq 'audio')) {
 			$firstTrack = int($1) if ($firstTrack==-1);
@@ -657,6 +718,14 @@ sub parsetoc
 			@offsets[$lastTrack] = $chunks[1] +150;
 			@durations[$lastTrack] = $chunks[2];
 			$lastoffset = $chunks[1];
+
+			if ($cdtextdetected) {
+				@tocTrackTitle[$lastTrack]  = $parsewords[8];
+				@tocTrackTitle[$lastTrack]  =~ s/\\'/'/g;
+				@tocTrackArtist[$lastTrack] = $parsewords[10];
+				@tocTrackArtist[$lastTrack] =~ s/\\'/'/g;
+				$log->debug("Track $lastTrack  Title=\"". $parsewords[8] . "\"  Artist =\"" . $parsewords[10] . "\"");				
+			}
 		}
 
 		if ($chunks[3] eq 'data'){
@@ -675,6 +744,12 @@ sub parsetoc
 	$self->{offsets}   = [ @offsets ];
 	$self->{lengths}   = [ @lengths ];
 	$self->{durations} = [ @durations ];
+	if ($cdtextdetected) {
+		$self->{tracktitles}  = [@tocTrackTitle];
+		$self->{trackartists} = [@tocTrackArtist];
+		$self->{albumartist}  = $tocAlbumArtist;
+		$self->{albumtitle}   = $tocAlbumTitle;
+	}
 
 	if ($firstTrack==-1) {
 # No tracks were found... probably no CD in the drive
