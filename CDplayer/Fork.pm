@@ -60,7 +60,7 @@ sub new
 		open(BATFILE, "> $forkcmdbat");
 		print BATFILE "\"$exec\" $params 2> \"$forkout\"" ;
 		close(BATFILE);
-		$self->{syscommand}            = "C:\\Windows\\system32\\cmd.exe /C \"$forkcmdbat\" ";
+		$self->{syscommand}            =  File::Which::which('cmd.exe') . " /C \"$forkcmdbat\" ";
 		$self->{batfile}               = $forkcmdbat;
 		$self->{completionStatusTest}  = $completionStatusTest;
 		$log->debug("Batch file line:>>>". "\"$exec\" $params 2> \"$forkout\"" . "<<<" );
