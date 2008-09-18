@@ -749,6 +749,9 @@ sub parsetoc
 		$self->{trackartists} = [@tocTrackArtist];
 		$self->{albumartist}  = $tocAlbumArtist;
 		$self->{albumtitle}   = $tocAlbumTitle;
+	} else {
+		$self->{albumartist}  = undef;
+		$self->{albumtitle}   = undef;
 	}
 
 	if ($firstTrack==-1) {
