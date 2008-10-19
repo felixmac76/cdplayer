@@ -28,6 +28,7 @@ my $osdetected = Slim::Utils::OSDetect::OS();
 my %defaults = (
 	device 	   => '/dev/cdrom',
 	pausestop  => 1,
+	cddbinexact  => 1,
 	usemusicbrainz => 0   # Use CDDB database
 );
 
@@ -51,16 +52,17 @@ sub page {
 
 sub prefs {
 	$log->debug("Prefs called");
-	return ($prefs, qw( device cddevice pausestop usemusicbrainz ));
+	return ($prefs, qw( device cddevice pausestop usemusicbrainz cddbinexact ));
 }
 
 sub handler {
 	my ($class, $client, $params) = @_;
 	$log->debug("CDplayer::Settings->handler() called.");
 	if ($params->{'saveSettings'}) {
-		$prefs->set('cddevice',  $params->{'cddevice'});
-		$prefs->set('pausestop', $params->{'pausestop'});
-		$prefs->set('usemusicbrainz', $params->{'usemusicbrainz'});
+		$prefs->set('cddevice',  $params->{'pref_cddevice'});
+		$prefs->set('pausestop', $params->{'pref_pausestop'});
+		$prefs->set('cddbinexact', $params->{'pref_cddbinexact'});
+		$prefs->set('usemusicbrainz', $params->{'pref_usemusicbrainz'});
 
 	}
 

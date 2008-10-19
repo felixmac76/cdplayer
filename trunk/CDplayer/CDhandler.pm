@@ -521,8 +521,11 @@ $log->debug ("Prefs UseMusicbrainz = " . $prefs->get('usemusicbrainz'));
 
 #							$5 . string('PLUGIN_CDPLAYER_BY') . $4  ,
 							HTML::Entities::encode_entities("http://freedb.freedb.org/~cddb/cddb.cgi?cmd=cddb+read+". $2 . "+" . $3 . "&hello=anonymous+localhost+SqueezeCenter+CDplayer1.0&proto=6") ;
-		} elsif ( $1 == 210  ) {
-# 210 Found exact matches, list follows (until terminating `.')
+		} elsif ( ($1 == 210) || 
+			( ($1 == 211) && ( $prefs->get('cddbinexact') == 1)) ) {
+
+#  Exact (210) and Inexact (211) matched records have the following format
+# genre discid  Album Artist / Album Title 
 # data 370b1116 Various Artists / Kill Bill, Vol. 1
 # misc 370b1116 OST / Kill Bill Vol. 1
 # soundtrack 370b1116 Various Artists / Kill Bill Vol. 1 [Soundtrack]

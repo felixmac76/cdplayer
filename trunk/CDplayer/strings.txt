@@ -21,6 +21,12 @@ PLUGIN_CDPLAYER_PAUSESTOP
 PLUGIN_CDPLAYER_PAUSESTOP_DESC
 	EN	If Enabled - Pause will stop playing of CD track. On some systems,  if pause is pressed when playing a track and user presses eject to remove CD, the system can hang. Ensuring tracks are stopped prevents this system hang.
 
+PLUGIN_CDPLAYER_CDDB_INEXACT
+	EN	Display any inexact matches found. 
+	
+PLUGIN_CDPLAYER_CDDB_INEXACT_DESC
+	EN	If checked - Any inexact matches found in the CDDB will be displayed. If uyncheck only exact mathes will be displayed.  There are often many inexact CDDB matches for a CD which are infact a match due to rounding errors when calculating Discid by other systems.
+
 PLUGIN_CDPLAYER_WEB_DEVICE
 	EN	CD Device Name
 
