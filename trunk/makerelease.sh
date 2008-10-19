@@ -7,6 +7,7 @@ mkdir /tmp/cdplayer_release/CDplayer
 
 # copy everything
 cp --preserve=timestamps -Rf CDplayer/* /tmp/cdplayer_release/CDplayer
+find /tmp/cdplayer_release/CDplayer -name \.svn | xargs rm -Rf
 
 # Build the Linux version
 
@@ -30,6 +31,7 @@ rm -f /tmp/cdplayer_release/custom-convert.conf
 cp CDplayer/custom-convert.conf.osx /tmp/cdplayer_release/CDplayer/custom-convert.conf
 
 rm /tmp/cdplayer_release/CDplayer/Bin/*
+mkdir /tmp/cdplayer_release/CDplayer/Bin
 cp CDplayer/Bin/cdda2wavosx.sh /tmp/cdplayer_release/CDplayer/Bin
 
 pushd /tmp/cdplayer_release
@@ -56,7 +58,7 @@ pushd /tmp/cdplayer_release
 chmod -R a+r *
 zip -rq /tmp/cdplayer-windows-v"$VERSION".zip *
 popd
-echo "Release available at: /tmp/cdplayer-windows-v"$VERSION"s.zip"
+echo "Release available at: /tmp/cdplayer-windows-v"$VERSION".zip"
 
 # Remove temporary directory
 rm -Rf /tmp/cdplayer_release
