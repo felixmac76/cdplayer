@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+
+<extension>
+	<name>PLUGIN_CDPLAYER</name>
+	<module>Plugins::CDplayer::Plugin</module>
+	<playerMenu>PLUGINS</playerMenu>
+	<version>1.05b1_7.3</version>
+	<description>PLUGIN_CDPLAYER_DESC</description>
+	<creator>bpa</creator>
+	<defaultState>enabled</defaultState>
+	<homepageURL></homepageURL>
+	<optionsURL>plugins/CDplayer/settings/basic.html</optionsURL>
+	<icon>plugins/CDplayer/html/images/icon.png</icon>
+	<type>2</type><!-- type=extension -->
+	<targetApplication>
+		<id>SqueezeCenter</id>
+		<minVersion>7.3</minVersion>
+        <maxVersion>7.3.*</maxVersion>
+	</targetApplication>
+</extension>
