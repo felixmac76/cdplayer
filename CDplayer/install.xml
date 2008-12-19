@@ -4,9 +4,9 @@
 	<name>PLUGIN_CDPLAYER</name>
 	<module>Plugins::CDplayer::Plugin</module>
 	<playerMenu>PLUGINS</playerMenu>
-	<version>1.04b1</version>
+	<version>1.05b1_7.1-7.2</version>
 	<description>PLUGIN_CDPLAYER_DESC</description>
-	<creator>Bryan Alton</creator>
+	<creator>bpa</creator>
 	<defaultState>enabled</defaultState>
 	<homepageURL></homepageURL>
 	<optionsURL>plugins/CDplayer/settings/basic.html</optionsURL>
@@ -15,6 +15,6 @@
 	<targetApplication>
 		<id>SqueezeCenter</id>
 		<minVersion>7.1</minVersion>
-        <maxVersion>*</maxVersion>
+        <maxVersion>7.2.*</maxVersion>
 	</targetApplication>
 </extension>
