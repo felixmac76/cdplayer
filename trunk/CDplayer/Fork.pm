@@ -60,7 +60,9 @@ sub new
 		open(BATFILE, "> $forkcmdbat");
 		print BATFILE "\"$exec\" $params 2> \"$forkout\"" ;
 		close(BATFILE);
-		$self->{syscommand}            =  File::Which::which('cmd.exe') . " /C \"$forkcmdbat\" ";
+#		$self->{syscommand}            =  File::Which::which('cmd.exe') . " /C \"$forkcmdbat\" ";
+		$self->{syscommand}            =  $ENV{'COMSPEC'} . " /C \"$forkcmdbat\" ";
+		$log->debug ("COMSPEC:\"".$self->{syscommand} . "\"");
 		$self->{batfile}               = $forkcmdbat;
 		$self->{completionStatusTest}  = $completionStatusTest;
 		$log->debug("Batch file line:>>>". "\"$exec\" $params 2> \"$forkout\"" . "<<<" );
