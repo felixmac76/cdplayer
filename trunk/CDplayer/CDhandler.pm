@@ -619,8 +619,8 @@ $log->debug ("Prefs UseMusicbrainz = " . $prefs->get('usemusicbrainz'));
 
 		for ( my $tracknum = $self->{firstTrack}; $tracknum <= $self->{lastTrack}; $tracknum++)  {
 			my $trackparams='?Lengths='     . $self->{lengths}[$tracknum] .
-					'&Offsets='     . $self->{offsets}[$tracknum] ;
-
+					'&Offsets='     . $self->{offsets}[$tracknum] .
+				        '&TrackTitle='  . URI::Escape::uri_escape_utf8(sprintf(string ('PLUGIN_CDPLAYER_CDTRACK_FORMAT'),$tracknum,  $self->{durations}[$tracknum]));
 			$output .= sprintf "\n\t\t\t<outline text=\"" . string ('PLUGIN_CDPLAYER_CDTRACK_FORMAT') . "\" url=\"cdplay://%d%s\" type=\"audio\"/>",
 					$tracknum,  $self->{durations}[$tracknum], $tracknum,HTML::Entities::encode_entities($trackparams) ;	
 		}

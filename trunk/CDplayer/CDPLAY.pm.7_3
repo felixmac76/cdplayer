@@ -204,11 +204,19 @@ sub getMetadataFor {
 		$icon = $urlimg{$cdInfo->{SearchString}};
 	} 
 
+	my ($baseurl,$params) = split (/\?/,$url); 
+
+	my %ops = map {
+			my ( $k, $v ) = split( '=' );
+			$k  => Encode::decode_utf8(uri_unescape( $v ))
+		} split( '&', $params );
+
+
 	return {
-		artist   =>  $cdInfo->{PlayingTrackArtist}  || $cdInfo->{PlayingAlbumArtist} ,
-		album    =>  $cdInfo->{PlayingAlbumTitle} ,
-		title    =>  $cdInfo->{PlayingTrackTitle}, 
-		duration =>  int($cdInfo->{PlayingLengths})/75,
+		artist   =>  $ops{TrackArtist}  || $ops{AlbumArtist} || Slim::Utils::Strings::string('PLUGIN_CDPLAYER_UNKNOWN_ARTIST') ,
+		album    =>  $ops{AlbumTitle}                        || Slim::Utils::Strings::string('PLUGIN_CDPLAYER_UNKNOWN_ALBUM')  ,
+		title    =>  $ops{TrackTitle}                        || Slim::Utils::Strings::string('PLUGIN_CDPLAYER_UNKNOWN_TRACK')  ,
+		duration =>  int($ops{Lengths})/75,
 		type     =>  'CD',
 		icon     =>  $icon ,
 		cover    =>  $icon,
@@ -223,11 +231,8 @@ sub scanUrl {
 
 }
 
-
-######################################################################################################################
 my @amazonlocale =  ('.com', '.co.uk' , '.de', '.fr', '.ca');
 my $amazontimeout =  30;
-
 
 sub startCustomAmazonSearch 
 {

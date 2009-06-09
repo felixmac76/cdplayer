@@ -29,8 +29,7 @@ my $osdetected  = Slim::Utils::OSDetect::OS();
 
 my $ansicodepage;
 	if ($osdetected eq 'win') {
-		use Win32;
-		use Win32::OLE::NLS; 
+		require Win32::OLE::NLS; 
 
 		my $langid    = Win32::OLE::NLS::GetSystemDefaultLCID();
 		my $lcid      = Win32::OLE::NLS::MAKELCID($langid);
