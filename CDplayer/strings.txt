@@ -72,6 +72,57 @@ PLUGIN_CDPLAYER_LOAD_CD
 PLUGIN_CDPLAYER_NO_TRACKS_FOUND
 	EN	No tracks found.
 
+PLUGIN_CDPLAYER_CANT_OPEN
+	EN	Cannot access the cdrom drive - check name and whether another app is using the drive
+
+PLUGIN_CDPLAYER_TRAY_OPEN
+	EN	The CDROM tray is open - please close the tray and try again.
+
+PLUGIN_CDPLAYER_NO_CD_IN_DRIVE
+	EN	There is no CD in the drive.
+
+PLUGIN_CDPLAYER_DRIVE_NOT_READY
+	EN	The CDROM drive is not ready. Check disc is inserted correctly and door is closed.
+
+PLUGIN_CDPLAYER_NOT_AUDIO_CD
+	EN	The CD is not an audio CD.
+
+PLUGIN_CDPLAYER_FAILED_DRIVE_STATUS
+	EN	Failed to get status info on cdrom drive
+
+PLUGIN_CDPLAYER_CDS_NO_INFO
+	EN	No info available on cdrom drive
+
+PLUGIN_CDPLAYER_CDS_NO_DISC
+	EN	There is no CD in the drive.
+
+PLUGIN_CDPLAYER_CDS_TRAY_OPEN
+	EN	The CDROM tray is open - please close the tray and try again.
+
+PLUGIN_CDPLAYER_CDS_DRIVE_NOT_READY
+	EN	The CDROM drive is not ready.
+
+PLUGIN_CDPLAYER_CDS_DISC_OK
+	EN	There is a CD in the drive.
+
+PLUGIN_CDPLAYER_CDS_AUDIO
+	EN	There is an audio CD in the drive.
+
+PLUGIN_CDPLAYER_CDS_DATA_1
+	EN	There is a data CD type 1 in the drive.
+
+PLUGIN_CDPLAYER_CDS_DATA_2
+	EN	There is a data CD type 2 in the drive.
+
+PLUGIN_CDPLAYER_CDS_XA_2_1
+	EN	There is an XA data CD type 1 in the drive.
+
+PLUGIN_CDPLAYER_CDS_XA_2_2
+	EN	There is an XA data CD type 2 in the drive.
+
+PLUGIN_CDPLAYER_CDS_MIXED"
+	EN	There is a mixed data & audio data CD in the drive.
+
 PLUGIN_CDPLAYER_NO_CD_LOADED
 	EN	Either: No CD, incompatible CD or wrong CD drive selected
 

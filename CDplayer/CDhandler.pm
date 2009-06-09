@@ -22,6 +22,7 @@ use Plugins::CDplayer::Fork;
 use XML::Simple;
 use URI::Escape;
 use Encode;
+use Fcntl;
 
 my $log         = logger('plugin.cdplayer');
 my $prefsServer = preferences('server');
@@ -56,6 +57,12 @@ use constant CDDRIVE_BUSY => 1;
 #use constant LOADCD_STATE_  =>1;
 #use constant LOADCD_STATE_  =>1;
 
+#
+# Max size of Fork log output - normally for 10 track CD with CD-extra about 2500.
+# so 25000 is a very large log file compared to normal.
+#
+
+use constant MAX_LOG_SIZE => 25000;
 
 sub new
 {
@@ -101,6 +108,17 @@ sub setMode {
 		return;
 	}
 
+	my ($retval, $drivestatus, $errormessage) = cdromstatus($prefs->get('device'));
+	if ($retval == 0) {
+		my %params = (
+			'header'  => "{PLUGIN_CDPLAYER_LOADCD_ERROR} {count}",
+			'listRef' => [ string($errormessage) . " ($drivestatus)" ],
+		);
+
+		Slim::Buttons::Common::pushModeLeft($client, 'INPUT.Choice', \%params);
+		return;
+	}
+
 	if ($self->{cduse} == CDDRIVE_BUSY) {
 		$log->info("CD drive is currently loading a TOC for another client ");
 
@@ -132,6 +150,7 @@ sub LoadCDandIdentify
 	my ($self, $client, $callbacksuccess, $callbackerror, $callbackparams) = @_;
 	my $device;
 
+
 	$log->info("Request to load CD and identify");
 	bt() if ($log->is_debug) ;
 	$log->debug(" cd use is " . $self->{cduse} . " Busy=". CDDRIVE_BUSY);
@@ -156,6 +175,7 @@ sub LoadCDandIdentify
 		$device = $prefs->get('cddevice');
 	}
 
+	
 	my $cmdparams;
 	my $command = "cdda2wav";
  
@@ -192,8 +212,12 @@ sub cdInfoCompletionTest
 	$param->{loadstate} = LOADCD_STATE_CHECKING_TOC_READ;
 	open ($logfile, $self->{forkout} ) or  $log->debug("Fork alive: Can't open ". $self->{forkout});
 
+	if (int ((-s $logfile)) > MAX_LOG_SIZE) {
+		$log->error("CD TOC log file is too large - pretend no CD error as there may be an undefined problem");
+	}
+
 	while (my $line = <$logfile>) {
-		if ($line eq "load cdrom please and press enter") {
+		if (($line =~ m/load cdrom please and press enter/) || (int ((-s $logfile)) > MAX_LOG_SIZE) ) {
 			$log->info(" No CD in drive - cdda2wav is prompting user");
 
 			if ($osdetected eq 'win') {
@@ -924,5 +948,108 @@ sub getErrorText
 return $errortext;
 
 }
+
+my %cdromstates = (
+	0 =>   "CDS_NO_INFO",
+	1 =>   "CDS_NO_DISC",
+	2 =>   "CDS_TRAY_OPEN",
+	3 =>   "CDS_DRIVE_NOT_READY",
+	4 =>   "CDS_DISC_OK",
+	100 => "CDS_AUDIO",
+	101 => "CDS_DATA_1",
+	102 => "CDS_DATA_2",
+	103 => "CDS_XA_2_1",
+	104 => "CDS_XA_2_2",
+	105 => "CDS_MIXED"
+	);
+my %cdrommsgs = (
+	0   => "PLUGIN_CDPLAYER_CDS_NO_INFO",
+	1   => "PLUGIN_CDPLAYER_CDS_NO_DISC",
+	2   => "PLUGIN_CDPLAYER_CDS_TRAY_OPEN",
+	3   => "PLUGIN_CDPLAYER_CDS_DRIVE_NOT_READY",
+	4   => "PLUGIN_CDPLAYER_CDS_DISC_OK",
+	100 => "PLUGIN_CDPLAYER_CDS_AUDIO",
+	101 => "PLUGIN_CDPLAYER_CDS_DATA_1",
+	102 => "PLUGIN_CDPLAYER_CDS_DATA_2",
+	103 => "PLUGIN_CDPLAYER_CDS_XA_2_1",
+	104 => "PLUGIN_CDPLAYER_CDS_XA_2_2",
+	105 => "PLUGIN_CDPLAYER_CDS_MIXED"
+	);
+
+#
+# CDROM ioctl Function codes
+#
+
+use constant  CDROM_DRIVE_STATUS => 21286;
+use constant  CDROM_DISC_STATUS  => 21287;
+#
+#  CDROM result codes.
+#
+use constant 	CDS_NO_INFO         => 0 ;
+use constant 	CDS_NO_DISC         => 1 ;
+use constant 	CDS_TRAY_OPEN       => 2 ;
+use constant 	CDS_DRIVE_NOT_READY => 3 ;
+use constant 	CDS_DISC_OK         => 4 ;
+use constant 	CDS_AUDIO           => 100 ;
+use constant 	CDS_DATA_1          => 101 ;
+use constant 	CDS_DATA_2          => 102 ;
+use constant 	CDS_XA_2_1          => 103 ;
+use constant 	CDS_XA_2_2          => 104 ;
+use constant 	CDS_MIXED           => 105 ;
+
+
+sub cdromstatus
+{
+	my $cdromdevice = shift;
+	my $filehandle;
+	my $drivestatus;
+	my $diskstatus;
+
+#
+# For non Unix systems - return success.
+#
+	if ($osdetected ne 'unix') {	
+		return (1,undef,undef);
+	}
+	
+#	if ( open ( $filehandle, "<" , $cdromdevice) ) {
+	if ( sysopen ( $filehandle, $cdromdevice, O_RDONLY | O_NONBLOCK) ) {
+		$log->debug("CDROM radio device $cdromdevice opened OK");
+	} else {
+		$log->error("Cannot open device: $cdromdevice error:$! (". int($!) . ")");
+		return (0,-1,'PLUGIN_CDPLAYER_CANT_OPEN');
+	}  
+
+	$drivestatus = ioctl ( $filehandle , CDROM_DRIVE_STATUS , 0 ) || -1;
+	if ($drivestatus < 0 ) {
+		$log->error("CDROM Status: get cdrom device status ioctl failed ($drivestatus): $! (". int($!) . ")");
+		return (-1, $drivestatus,'PLUGIN_CDPLAYER_FAILED_DRIVE_STATUS');
+	}	
+	$log->debug("cdrom drive status $drivestatus  text=". $cdromstates{$drivestatus} .  " errmsg=". $cdrommsgs{$drivestatus});
+
+#
+#  Check if drivestatus is CDS_DISC_OK - there is a readable disk in the drive
+#
+	if ($drivestatus != CDS_DISC_OK ) {
+		close ($filehandle) ;
+		return (0, $drivestatus,$cdrommsgs{$drivestatus});
+	}
+
+#
+#  Check thast the disk is an audio disc or has audio content.
+#
+
+	$diskstatus = ioctl ( $filehandle , CDROM_DISC_STATUS , 0 ) ;
+	$log->debug("cdrom disc status $diskstatus  code=". $cdromstates{$diskstatus} . " errmsg=". $cdrommsgs{$diskstatus});
+	if ( ($diskstatus == CDS_MIXED) || ($diskstatus == CDS_AUDIO ) ) {
+		close ($filehandle) ;
+		return (1, $diskstatus,$cdrommsgs{$diskstatus});
+	}
+
+	return (0, $diskstatus,$cdrommsgs{$diskstatus});
+
+}
+
+
 
 1;
