@@ -43,10 +43,26 @@ sub isRemote { 1 }
 sub new {
 	my $class = shift;
 	my $args  = shift;
-	my $transcoder    = $args->{'transcoder'};
+
+	my $client     = $args->{'client'};
+	my $transcoder   = $args->{'transcoder'};
 	my $command;
 
-	my $fullurl = $args->{'url'} ;
+	my $fullurl      = $args->{'url'} ;
+	my $seekdata     = $args->{'song'}->{'seekdata'};
+	my $offsetSectors;
+	
+	if (defined($seekdata)) {
+		$log->debug("Seekdata \n". Dumper($seekdata));
+	}
+
+	if (defined ($seekdata->{timeOffset})) {
+		my $newtime = int($seekdata->{timeOffset});
+		$offsetSectors = int($seekdata->{timeOffset} * 75) ; # 75 sectors in a second.
+
+		$client->playingSong->{startOffset} = $newtime;
+		$client->master->remoteStreamStartTime( Time::HiRes::time() - $newtime );
+	}
 
 
 	my $cdInfo = Plugins::CDplayer::Plugin::cdInfo();
@@ -101,6 +117,13 @@ sub new {
 
 	$restoredurl = $baseurl;
 	my $cdspeed = 4;
+
+	if (defined($offsetSectors)) {
+		$transcoder->{'command'} =~ s/\$CDOFFSET\$/-offset $offsetSectors/;
+	} else {
+		$transcoder->{'command'} =~ s/\$CDOFFSET\$//;
+	}
+
 	$transcoder->{'command'} =~ s/\$CDTRACK\$/$tracknum/;
 	$transcoder->{'command'} =~ s/\$CDDEVICE\$/$cddevice/;
 	$transcoder->{'command'} =~ s/\$CDSPEED\$/$cdspeed/;
@@ -231,6 +254,49 @@ sub scanUrl {
 
 }
 
+
+
+sub canSeek {
+	my ( $class, $client, $song ) = @_;
+	
+# Can only seek if duration is known
+	my $seconds = $song->duration();
+
+	if ($seconds) {
+	  return 1;
+	}
+
+	$log->error("Cannot seek duration ($seconds) may be undefined or 0");
+
+	return 0;
+}
+
+sub canSeekError {
+	my ( $class, $client, $song ) = @_;
+	
+	my $url = $song->currentTrack()->url;
+	
+	if ($log->is_debug) {
+		my $ct = Slim::Music::Info::contentType($url);
+		$log->debug( " CanSeekError content type $ct url=$url " );
+	}
+
+	if ( !$song->duration() ) {
+		return 'SEEK_ERROR_CDPLAY_UNKNOWN_DURATION';
+	}
+	
+	return 'SEEK_ERROR_CDPLAY';
+}
+
+sub getSeekData {
+
+	my ( $class, $client, $song, $newtime ) = @_;
+	
+	# Do it all later at open time
+	return {timeOffset => $newtime};
+}
+
+
 my @amazonlocale =  ('.com', '.co.uk' , '.de', '.fr', '.ca');
 my $amazontimeout =  30;
 
@@ -308,22 +374,15 @@ sub searchAmazonOK
 		my $itemLargeImageURL = defined ($item->{LargeImage}->{URL} ) ? $item->{LargeImage}->{URL} : undef;
 		$log->info("Found image url:$itemLargeImageURL"); 
 		if (defined ($item->{LargeImage}->{URL} )) {
-		
 			$urlimg{$cdInfo->{SearchString}} = $itemLargeImageURL;
-$log->info("Save URL in $cdInfo ");
-#			coverArtUrl => $itemLargeImageURL ,
-#			albumTitle  => $itemtitle,
-#			albumArtist => $itemartist ,
-#			albumASIN   => $item->{ASIN},
 		} 
 	}
 	else {
 		$log->debug("Total matches =$totalresults Message :" . 
-			$asinrec->{'Items'}->{'Request'}->{'Errors'}->{'Error'}->{'Message'});
+		$asinrec->{'Items'}->{'Request'}->{'Errors'}->{'Error'}->{'Message'});
 	};
 
 }
-
 
 sub getAmazonArtistInfo
 {
