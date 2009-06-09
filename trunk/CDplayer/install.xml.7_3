@@ -4,7 +4,7 @@
 	<name>PLUGIN_CDPLAYER</name>
 	<module>Plugins::CDplayer::Plugin</module>
 	<playerMenu>PLUGINS</playerMenu>
-	<version>1.05b1_7.3</version>
+	<version>1.06b2_7.3</version>
 	<description>PLUGIN_CDPLAYER_DESC</description>
 	<creator>bpa</creator>
 	<defaultState>enabled</defaultState>

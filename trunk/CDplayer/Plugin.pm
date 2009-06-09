@@ -184,15 +184,23 @@ sub indexHandler
 {
 	my ( $client, $stash, $callback, $httpClient, $response ) = @_;
 	$log->info("CDplayer - Indexhandler called");
+	my ($success, $statuscode, $errmsg) = Plugins::CDplayer::CDhandler::cdromstatus($prefs->get('device'));
+	if ( $success != 1) {
 
-	if ($cdInfo->isCDinUse() ) {
+		$log->info("Error after CDROM status sucess: $success  status code: $statuscode  ");
+		$stash->{'errormsg'} =  string($errmsg) . "($statuscode)";
+		my $output = Slim::Web::HTTP::filltemplatefile('plugins/CDplayer/index.html', $stash);
+		&$callback($client, $stash, $output,  $httpClient, $response);
+	}
+	elsif ($cdInfo->isCDinUse() ) {
 		$log->info("CD drive is currently loading a TOC for another client ");
 		$stash->{'errormsg'} = sprintf(string('PLUGIN_CDPLAYER_WEB_ERROR'), -1 , 
 					string('PLUGIN_CDPLAYER_CD_BUSY') . ' '. string('PLUGIN_CDPLAYER_TRY_AGAIN'));
  
 		my $output = Slim::Web::HTTP::filltemplatefile('plugins/CDplayer/index.html', $stash);
 		&$callback($client, $stash, $output,  $httpClient, $response);
-	} else {
+	} 
+	else {
 		if( $cdInfo->isCDplaying() ) {
 			ReadCDTOCSuccessWebCallback($client,\@_);
 		} else { 
@@ -246,6 +254,15 @@ sub cliQuery {
 	if (defined( $request->getParam('item_id')) || $cdInfo->isCDplaying()  ) {
 		ReadCDTOCSuccessCLICallback($client, $request );
 	} else {
+
+		my ($success, $statuscode, $errmsg) = Plugins::CDplayer::CDhandler::cdromstatus($prefs->get('device'));
+		if ( $success != 1) {
+			$request->addResult("networkerror", Slim::Utils::Strings::string($errmsg) . "($statuscode)" );
+			$request->addResult('count', 0);
+			$request->setStatusDone();
+			return;
+		}
+
 		if ($cdInfo->isCDinUse() ) {
 			$log->info("CD drive is currently loading a TOC for another client ");
 			$request->addResult("networkerror", Slim::Utils::Strings::string('PLUGIN_CDPLAYER_CD_BUSY') . "  ". 
