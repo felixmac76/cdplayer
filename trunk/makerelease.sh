@@ -7,9 +7,16 @@ VERSION73=`sed -n 's/.*<version>\(.*\)<\/version>.*/\1/p' CDplayer/install.xml.7
 mkdir /tmp/cdplayer_release
 mkdir /tmp/cdplayer_release/CDplayer
 
-# copy everything
+# copy everything 
 cp --preserve=timestamps -Rf CDplayer/* /tmp/cdplayer_release/CDplayer
+
+# remove svn and leftover backups 
 find /tmp/cdplayer_release/CDplayer -name \.svn | xargs rm -Rf
+rm /tmp/cdplayer_release/CDplayer/*.pm~
+rm /tmp/cdplayer_release/CDplayer/*.xml~
+rm /tmp/cdplayer_release/CDplayer/*.conf~
+rm /tmp/cdplayer_release/CDplayer/*.7_3~
+
 
 # Build the Linux version
 
@@ -19,6 +26,7 @@ rm /tmp/cdplayer_release/CDplayer/custom-convert.conf.win
 mv /tmp/cdplayer_release/CDplayer/custom-convert.conf.linux /tmp/cdplayer_release/CDplayer/custom-convert.conf
 # remove non-Linux specifics
 rm -Rf /tmp/cdplayer_release/CDplayer/Bin
+
 
 # remove 7.3 specifics
 rm /tmp/cdplayer_release/CDplayer/install.xml.7_3

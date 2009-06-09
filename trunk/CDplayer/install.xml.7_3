@@ -4,7 +4,7 @@
 	<name>PLUGIN_CDPLAYER</name>
 	<module>Plugins::CDplayer::Plugin</module>
 	<playerMenu>PLUGINS</playerMenu>
-	<version>1.06b2_7.3</version>
+	<version>1.06b3_7.3</version>
 	<description>PLUGIN_CDPLAYER_DESC</description>
 	<creator>bpa</creator>
 	<defaultState>enabled</defaultState>
@@ -15,6 +15,6 @@
 	<targetApplication>
 		<id>SqueezeCenter</id>
 		<minVersion>7.3</minVersion>
-        <maxVersion>7.3.*</maxVersion>
+        <maxVersion>7.4.*</maxVersion>
 	</targetApplication>
 </extension>

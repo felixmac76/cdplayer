@@ -42,6 +42,14 @@
 		[% END %]
 	[% END %]
 
+	[% WRAPPER settingGroup title="PLUGIN_CDPLAYER_AMAZONLOCALE" desc="PLUGIN_CDPLAYER_AMAZONLOCALE_DESC"%]
+		<input type="radio" name="pref_amazonlocale" value="0" [% IF prefs.pref_amazonlocale == 0 %]checked[% END %]>amazon.com<br/>
+		<input type="radio" name="pref_amazonlocale" value="1" [% IF prefs.pref_amazonlocale == 1 %]checked[% END %]>amazon.co.uk<br/>
+		<input type="radio" name="pref_amazonlocale" value="2" [% IF prefs.pref_amazonlocale == 2 %]checked[% END %]>amazon.de<br/>
+		<input type="radio" name="pref_amazonlocale" value="3" [% IF prefs.pref_amazonlocale == 3 %]checked[% END %]>amazon.fr<br/>
+		<input type="radio" name="pref_amazonlocale" value="4" [% IF prefs.pref_amazonlocale == 4 %]checked[% END %]>amazon.ca<br/>
+	[% END %]
+
 
   [% END %]
 [% PROCESS settings/footer.html %]
