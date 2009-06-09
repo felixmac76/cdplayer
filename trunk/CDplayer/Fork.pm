@@ -27,6 +27,17 @@ my $forkcount   = 1;
 my $prefsServer = preferences('server');
 my $osdetected  = Slim::Utils::OSDetect::OS();
 
+my $ansicodepage;
+	if ($osdetected eq 'win') {
+		use Win32;
+		use Win32::OLE::NLS; 
+
+		my $langid    = Win32::OLE::NLS::GetSystemDefaultLCID();
+		my $lcid      = Win32::OLE::NLS::MAKELCID($langid);
+		$ansicodepage = Win32::OLE::NLS::GetLocaleInfo($lcid, Win32::OLE::NLS::LOCALE_IDEFAULTANSICODEPAGE());
+		$log->debug("CDplayer::Fork.pm - Default ANSI codepage=$ansicodepage");
+	}
+
 sub new
 {
 	my($class, %cnf) = @_;
@@ -58,6 +69,7 @@ sub new
 		my $forkcmdbat = File::Spec::Functions::catfile($prefsServer->get('cachedir'),"forkcmd$forkcount.bat");
 
 		open(BATFILE, "> $forkcmdbat");
+		print BATFILE "chcp $ansicodepage\n" if defined($ansicodepage) ;
 		print BATFILE "\"$exec\" $params 2> \"$forkout\"" ;
 		close(BATFILE);
 #		$self->{syscommand}            =  File::Which::which('cmd.exe') . " /C \"$forkcmdbat\" ";
@@ -88,7 +100,7 @@ sub go
     
 	unlink $forkout;
 
-	$self->{proc} = Proc::Background->new($syscommand) || $log->debug("Child task forked: failed: $!");
+	$self->{proc} = Proc::Background->new($syscommand) || $log->error("Child task forked: failed: $!");
 
 	$log->debug("Child task (". $self->{proc}->pid .") forked: " . $syscommand);
 	if ($self->{proc}->alive ){
@@ -127,7 +139,7 @@ sub checkFork()
 		my $output;
 		my $pid = $proc->pid;
 		$log->debug("Forked task $pid is not alive");
-    		open ($logfile, $self->{forkout} ) or  $log->debug("Fork $pid dead: Can't open ". $self->{forkout});
+    		open ($logfile, $self->{forkout} ) or  $log->error("Fork $pid dead: Can't open ". $self->{forkout});
     		while (my $line = <$logfile>) {
       			$log->debug("FORK $pid : $line");
       			$output .= $line;
