@@ -544,7 +544,7 @@ $log->debug ("Prefs UseMusicbrainz = " . $prefs->get('usemusicbrainz'));
 #		CODE =>1 GENRE=>$2,DISCID=>$3,ARTIST=>$4,ALBUM=>$5
 # 200 soundtrack ee10bf12 Howard Shore / The Lord Of The Rings: The Fellowship Of The Ring
 			$output .= sprintf "\n\t\t\t<outline text=\"%s\" url=\"%s\" parser=\"Plugins::CDplayer::CDPlayerParserCDDBAlbumrec\" type=\"playlist\" />", 
-							HTML::Entities::encode_entities(decode("UTF8",($5 . string('PLUGIN_CDPLAYER_BY') . $4)))  ,
+							HTML::Entities::encode_entities_numeric(decode("UTF8",($5 . string('PLUGIN_CDPLAYER_BY') . $4)))  ,
 
 #							$5 . string('PLUGIN_CDPLAYER_BY') . $4  ,
 							HTML::Entities::encode_entities("http://freedb.freedb.org/~cddb/cddb.cgi?cmd=cddb+read+". $2 . "+" . $3 . "&hello=anonymous+localhost+SqueezeCenter+CDplayer1.0&proto=6") ;
@@ -569,7 +569,7 @@ $log->debug ("Prefs UseMusicbrainz = " . $prefs->get('usemusicbrainz'));
 				if ($line =~ m/([^\s]+)\s([^\s]+)\s([^\/|\:|\-]+)\s[\/|\:|\-]\s?(.*)\s?/) {
 #					$log->debug("CDDBline: >$1<>$2<>$3<>$4< ");
 					$output .= sprintf "\n\t\t\t<outline text=\"%s\" url=\"%s\" parser=\"Plugins::CDplayer::CDPlayerParserCDDBAlbumrec\" type=\"playlist\" />", 
-						HTML::Entities::encode_entities(decode("UTF8",($4 . string('PLUGIN_CDPLAYER_BY') . $3 . ' ['. $1 .']' ))),
+						HTML::Entities::encode_entities_numeric(decode("UTF8",($4 . string('PLUGIN_CDPLAYER_BY') . $3 . ' ['. $1 .']' ))),
 						HTML::Entities::encode_entities("http://freedb.freedb.org/~cddb/cddb.cgi?cmd=cddb+read+". $1 . "+" . $2 . "&hello=anonymous+localhost+SqueezeCenter+CDplayer1.0&proto=6") ;
 				}
 			}
@@ -605,7 +605,7 @@ $log->debug ("Prefs UseMusicbrainz = " . $prefs->get('usemusicbrainz'));
 						'&Lengths='     . $self->{lengths}[$tracknum] .
 						'&Offsets='     . $self->{offsets}[$tracknum] ;
 
-				$output .= sprintf "\n\t\t\t<outline text=\"" . HTML::Entities::encode_entities(decode("UTF8",( $self->{tracktitles}[$tracknum] . string('PLUGIN_CDPLAYER_BY') . $self->{trackartists}[$tracknum] . ' ('. $self->{durations}[$tracknum] .')' ))) . "\" url=\"cdplay://%d%s\" type=\"audio\"/>",
+				$output .= sprintf "\n\t\t\t<outline text=\"" . HTML::Entities::encode_entities_numeric(decode("UTF8",( $self->{tracktitles}[$tracknum] . string('PLUGIN_CDPLAYER_BY') . $self->{trackartists}[$tracknum] . ' ('. $self->{durations}[$tracknum] .')' ))) . "\" url=\"cdplay://%d%s\" type=\"audio\"/>",
 						, $tracknum,HTML::Entities::encode_entities($trackparams) ;	
 			}
   			$output .="\n\t</outline>";
