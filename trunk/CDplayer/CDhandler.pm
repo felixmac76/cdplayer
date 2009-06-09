@@ -179,6 +179,9 @@ sub LoadCDandIdentify
 	my $cmdparams;
 	my $command = "cdda2wav";
  
+	if ($osdetected eq 'mac') {
+		$command = "cdda2wavosx.sh";
+	};
 
 #	if ($osdetected ne 'win') {
 		$cmdparams  = "device=$device -verbose-level=toc -N -g -J";
