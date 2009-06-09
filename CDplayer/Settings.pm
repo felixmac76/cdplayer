@@ -29,12 +29,19 @@ my %defaults = (
 	device 	   => '/dev/cdrom',
 	pausestop  => 1,
 	cddbinexact  => 1,
+	amazonlocale    => 0,
 	usemusicbrainz => 0   # Use CDDB database
 );
 
 
 # List of CDROM devices in Windows
 my %cdromDeviceList;
+
+
+$prefs->migrate(2, sub {
+	$prefs->set('amazonlocale', 0 );
+	1;
+});
 
 sub new {
 	my $class = shift;
@@ -52,7 +59,7 @@ sub page {
 
 sub prefs {
 	$log->debug("Prefs called");
-	return ($prefs, qw( device cddevice pausestop usemusicbrainz cddbinexact ));
+	return ($prefs, qw( device cddevice pausestop usemusicbrainz cddbinexact amazonlocale ));
 }
 
 sub handler {

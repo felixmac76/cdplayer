@@ -183,3 +183,11 @@ PLUGIN_CDPLAYER_TRY_AGAIN
 PLUGIN_CDPLAYER_CD_BUSY
 	EN	CD drive is in use.
 
+PLUGIN_CDPLAYER_AMAZONLOCALE
+	EN	Select Amazon locale
+
+PLUGIN_CDPLAYER_AMAZONLOCALE_DESC
+	EN	Choose amazon locale to be used when searching for cover art.
+
+PLUGIN_CDPLAYER_SETTINGS_LOCALE
+	EN	Amazon Locale

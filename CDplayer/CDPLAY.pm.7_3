@@ -19,6 +19,8 @@ use Slim::Utils::Log;
 use Slim::Utils::Prefs;
 use URI::Escape;
 use HTML::Entities;
+use XML::Simple;
+use Tie::Cache::LRU;
 
 use Data::Dumper;
 
@@ -31,6 +33,10 @@ use constant CDSTOPPED => 0;
 
 
 Slim::Player::ProtocolHandlers->registerHandler('cdplay', __PACKAGE__);
+
+#  Hash holds any URL for Amazon album art  - keyed on searchstring. 
+tie my %urlimg, 'Tie::Cache::LRU', 32;
+
 
 sub isRemote { 1 }
 
@@ -123,11 +129,15 @@ $log->debug("about to execute:$command");
 	$cdInfo->{PlayingMBDiscid}     =  $ops{MBDiscid};
 
 
+
 	$log->info("SetCurrentTitle for $fullurl ");
 	Slim::Music::Info::setCurrentTitle( $fullurl, $cdInfo->{PlayingTrackTitle} . ' (' . $cdInfo->{durations}[$tracknum] .')' );
 	Slim::Music::Info::setDuration( $fullurl, (int($cdInfo->{PlayingLengths})/75) );
 
 	$cdInfo->CDplaying ( CDPLAYING );
+
+	startCustomAmazonSearch( $class, $cdInfo); 
+
 
 	my $self = $class->SUPER::new(undef, $command,'local');
 
@@ -188,7 +198,11 @@ sub getMetadataFor {
 	my ( $class, $client, $url, $forceCurrent ) = @_;
 
 	my $cdInfo = Plugins::CDplayer::Plugin::cdInfo();
-	my $icon =   Plugins::CDplayer::Plugin->_pluginDataFor('icon');
+	my $icon   = Plugins::CDplayer::Plugin->_pluginDataFor('icon'); 
+
+	if (defined($urlimg{$cdInfo->{SearchString}})) {
+		$icon = $urlimg{$cdInfo->{SearchString}};
+	} 
 
 	return {
 		artist   =>  $cdInfo->{PlayingTrackArtist}  || $cdInfo->{PlayingAlbumArtist} ,
@@ -208,6 +222,133 @@ sub scanUrl {
 	Slim::Utils::Scanner::Remote->scanURL($url, $args);
 
 }
+
+
+######################################################################################################################
+my @amazonlocale =  ('.com', '.co.uk' , '.de', '.fr', '.ca');
+my $amazontimeout =  30;
+
+
+sub startCustomAmazonSearch 
+{
+	my $class        = shift;
+	my $cdInfo 	 = shift;
+	
+	my $titlesearch  = $cdInfo->{PlayingAlbumTitle};
+	my $artistsearch = $cdInfo->{PlayingAlbumArtist};
+
+#	my $ptr   = getDataPtr($client);
+	my $searchstring;
+	$log->info("Title=\"$titlesearch\"\n". sprintf("%vx",$titlesearch));
+	$titlesearch =~ s/[\p{IsLm}]//g;
+	$titlesearch =~ s/[^'[:alnum:]]/ /g;
+	$titlesearch =~ s/^\s+//;
+	$artistsearch =~ s/^\s+//;
+	$log->info("Title=\"$titlesearch\"\n". sprintf("%vx",$titlesearch));
+
+
+	$log->debug("Start Custom Amazon search");
+	
+	$searchstring =  'Title='. URI::Escape::uri_escape_utf8($titlesearch) ;
+	$searchstring .= '&Artist='. URI::Escape::uri_escape_utf8($artistsearch) ;
+	$cdInfo->{SearchString} = $searchstring; 
+
+	if (defined($urlimg{$cdInfo->{SearchString}}))  {
+		my $icon = $urlimg{$cdInfo->{SearchString}};
+		$log->info("CD cover for \"$searchstring\" already found=\"$icon");
+		return ;
+	} 
+
+	$log->debug("Search string=\"$searchstring\"");
+# See Amazon Developer Guide for URL syntax http://docs.amazonwebservices.com/AWSECommerceService/latest/DG/
+
+	my $url = 'http://ecs.amazonaws' . @amazonlocale[$prefs->get('amazonlocale')]  .
+	      "/onca/xml?Service=AWSECommerceService&Version=2007-10-29&Operation=ItemSearch&AssociateTag=webservices-20&AWSAccessKeyId=11ZKJS8X1ETSTJ6MT802&$searchstring&SearchIndex=Music&ResponseGroup=Small,Images";
+	$log->info("Amazon search url ".$url);
+	my $http = Slim::Networking::SimpleAsyncHTTP->new(
+				\&searchAmazonOK, \&searchAmazonError,
+				{
+					timeout => $amazontimeout,
+					class => $class,
+					cdinfo => $cdInfo,
+				} );
+	$http->get($url);
+
+}
+
+sub searchAmazonOK
+{
+	my $http    = shift;
+	my $content = $http->content;
+	my $class   = $http->params('client');
+	my $cdInfo  = $http->params('cdinfo');
+
+	$log->debug("Received search results from Amazon");
+
+	my $asinrec = XMLin( $content , 'forcearray' => [qw(Item Creator Artist)], 'keyattr' => []);
+
+#	$log->debug("Request Arguement\n ". Dumper($asinrec->{OperationRequest}->{Arguments}));
+	my $totalresults = int ($asinrec->{'Items'}->{'TotalResults'});
+
+	if ($totalresults > 0 ) {
+		my $items = $asinrec->{'Items'}->{'Item'};
+		my $count = scalar @{$items};
+		my $item  = @{$items}[0]; 
+
+		$log->debug("Total matches =$totalresults No of items = ". scalar(@$items) );
+		my $itemattributes    = $item->{ItemAttributes};
+		my $itemartist        = getAmazonArtistInfo($itemattributes);
+		my $itemtitle         = $itemattributes->{Title};
+		my $itemheader        = $itemtitle . "\n". $itemartist;
+		my $itemLargeImageURL = defined ($item->{LargeImage}->{URL} ) ? $item->{LargeImage}->{URL} : undef;
+		$log->info("Found image url:$itemLargeImageURL"); 
+		if (defined ($item->{LargeImage}->{URL} )) {
+		
+			$urlimg{$cdInfo->{SearchString}} = $itemLargeImageURL;
+$log->info("Save URL in $cdInfo ");
+#			coverArtUrl => $itemLargeImageURL ,
+#			albumTitle  => $itemtitle,
+#			albumArtist => $itemartist ,
+#			albumASIN   => $item->{ASIN},
+		} 
+	}
+	else {
+		$log->debug("Total matches =$totalresults Message :" . 
+			$asinrec->{'Items'}->{'Request'}->{'Errors'}->{'Error'}->{'Message'});
+	};
+
+}
+
+
+sub getAmazonArtistInfo
+{
+	my $itemattributes = shift;
+
+	my @artists;
+	my $creatoritem;
+
+	@artists =  @{$itemattributes->{Artist}} if (defined ($itemattributes->{Artist})) ;
+
+	if (defined($itemattributes->{Creator} )) {
+		$creatoritem = $itemattributes->{Creator};
+		foreach my $entry (@$creatoritem) {
+			push @artists,  $entry->{content} . "(" . $entry->{Role} .")" ;
+		}; 
+	}
+
+	return join('; ',@artists) if (defined(@artists)) ;
+	return ' ';
+}
+
+sub searchAmazonError
+{
+  my $http    = shift;
+  my $client  = $http->params('client');
+
+  $log->error('Amazon http failed:' .$http->error);
+
+}
+
 1;
 
 # Local Variables:
