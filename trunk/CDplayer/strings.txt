@@ -183,6 +183,15 @@ PLUGIN_CDPLAYER_TRY_AGAIN
 PLUGIN_CDPLAYER_CD_BUSY
 	EN	CD drive is in use.
 
+SEEK_ERROR_CDPLAY
+	EN	Cannot seek in this CDPLAY stream
+
+SEEK_ERROR_CDPLAY_UNKNOWN_DURATION
+	EN	Cannot seek with unknown duration (CDplayer)
+
+SEEK_ERROR_CDPLAY_UNKNOWN_BITRATE
+	EN	Cannot seek with unknown bitrate (CDplayer)
+
 PLUGIN_CDPLAYER_AMAZONLOCALE
 	EN	Select Amazon locale
 
