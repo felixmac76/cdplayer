@@ -1,0 +1,74 @@
+<?xml version="1.0"?>
+
+<extensions>
+	
+	<details>
+		<title lang="EN">CDplayer beta</title>
+	</details>
+	
+	<plugins>
+		
+		<plugin name="CDplayer" version="1.07beta1_7.3" target="unix" minTarget="7.3" maxTarget="7.4.*">
+			<title lang="EN">CDplayer</title>
+			<desc  lang="EN">CDplayer beta test
+				* Add cover art support
+				* Add seek support in tracks
+				* Bug fix OSX support
+				* Bug fix playlist items on Squeezeplay
+				* bug fix accented chars support
+				* bug fix accented chars in Applicatio data name in Windows
+				* Change pause support to 7.3 methods
+				* remove need for external app to tidy up cdda2wav orphan processes on Windows.</desc>
+			<creator>bpa</creator>
+			<email>baltontwo@eircom.net</email>
+			<url>http://cdplayer.googlecode.com/files/cdplayer-linux-v1.07beta1_7.3.zip</url>
+			<sha>60b87c7590a9d8161fc7acac9ab71b0e32221c76</sha>
+		</plugin>
+		<plugin name="CDplayer" version="1.07beta1_7.3"  target="win" minTarget="7.3" maxTarget="7.4.*">
+			<title lang="EN">CDplayer</title>
+			<desc  lang="EN">CDplayer beta test
+				* Add cover art support
+				* Add seek support in tracks
+				* Bug fix OSX support
+				* Bug fix playlist items on Squeezeplay
+				* bug fix accented chars support
+				* bug fix accented chars in Applicatio data name in Windows
+				* Change pause support to 7.3 methods
+				* remove need for external app to tidy up cdda2wav orphan processes on Windows.</desc>
+			<creator>bpa</creator>
+			<email>baltontwo@eircom.net</email>
+			<url>http://cdplayer.googlecode.com/files/cdplayer-windows-v1.07beta1_7.3.zip</url>
+			<sha>fa9e23475abef55989ee32dc8c7d8549f595a089</sha>
+		</plugin>
+		<plugin name="CDplayer" version="1.07beta1_7.3"  target="mac" minTarget="7.3" maxTarget="7.4.*">
+			<title lang="EN">CDplayer</title>
+			<desc  lang="EN">CDplayer beta test
+				* Add cover art support
+				* Add seek support in tracks
+				* Bug fix OSX support
+				* Bug fix playlist items on Squeezeplay
+				* bug fix accented chars support
+				* bug fix accented chars in Applicatio data name in Windows
+				* Change pause support to 7.3 methods
+				* remove need for external app to tidy up cdda2wav orphan processes on Windows.</desc>
+			<creator>bpa</creator>
+			<email>baltontwo@eircom.net</email>
+			<url>http://cdplayer.googlecode.com/files/cdplayer-osx-v1.07beta1_7.3.zip</url>
+			<sha>95dd30976b79e85f1e1be066383bbff0a07ec527</sha>
+		</plugin>
+		
+		
+	</plugins>
+	
+</extensions>
+
+
+
+
+
+
+
+
+
+
+

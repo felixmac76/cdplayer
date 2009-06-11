@@ -102,7 +102,8 @@ sub initPlugin()
 
 	Slim::Control::Jive::registerPluginMenu(\@item);
 
-	Slim::Control::Request::subscribe( \&pauseCallback, [['pause']] );
+# 7.3 onwards - use the protocol Handler - canDoAction
+#	Slim::Control::Request::subscribe( \&pauseCallback, [['pause']] );
 
 }
 
@@ -314,25 +315,25 @@ sub ReadCDTOCFailedCLICallback
 }
 
 
-sub pauseCallback {
-	my $request = shift;
-	my $client  = $request->client;
-
-	my $stream  = Slim::Player::Playlist::song($client)->path;
-	my $playmode= Slim::Player::Source::playmode($client);
-	my $mode    = Slim::Buttons::Common::mode($client);
-
-	$log->debug("cli Pause - playmode=$playmode  stream=$stream ");
-
-	if ($stream =~ /^cdplay:/ ) {
-#	if ($playmode eq 'pause' && $stream =~ /^cdplay:/ ) {
-		if ($prefs->get('pausestop')) {
-			$log->debug("Issuing stop");
-			$client->execute([ 'stop' ]);
-		}
-	}
-
-}
+#sub pauseCallback {
+#	my $request = shift;
+#	my $client  = $request->client;
+#
+#	my $stream  = Slim::Player::Playlist::song($client)->path;
+#	my $playmode= Slim::Player::Source::playmode($client);
+#	my $mode    = Slim::Buttons::Common::mode($client);
+#
+#	$log->debug("cli Pause - playmode=$playmode  stream=$stream ");
+#
+#	if ($stream =~ /^cdplay:/ ) {
+##	if ($playmode eq 'pause' && $stream =~ /^cdplay:/ ) {
+#		if ($prefs->get('pausestop')) {
+#			$log->debug("Issuing stop");
+#			$client->execute([ 'stop' ]);
+#		}
+#	}
+#
+#}
 
 
 1;
