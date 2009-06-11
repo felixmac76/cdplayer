@@ -38,6 +38,21 @@ Slim::Player::ProtocolHandlers->registerHandler('cdplay', __PACKAGE__);
 tie my %urlimg, 'Tie::Cache::LRU', 32;
 
 
+sub canDoAction {
+	my ( $class, $client, $url, $action ) = @_;
+	$log->info("Action=$action");
+	if (($action eq 'pause') && $prefs->get('pausestop') ) {
+		$log->info("Stopping track because pref is set yo stop");
+		return 0;
+	}
+	
+	return 1;
+}
+
+# use a small buffer threshold to make CD start playing quickly 
+
+sub bufferThreshold { 70 }
+
 sub isRemote { 1 }
 
 sub new {

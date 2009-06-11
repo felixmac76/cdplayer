@@ -124,6 +124,7 @@ echo "Release available at: /tmp/cdplayer-windows-v"$VERSION71".zip"
 cp --preserve=timestamps CDplayer/install.xml.7_3               /tmp/cdplayer_release/CDplayer/install.xml
 cp --preserve=timestamps CDplayer/CDPLAY.pm.7_3                 /tmp/cdplayer_release/CDplayer/CDPLAY.pm
 cp --preserve=timestamps CDplayer/custom-convert.conf.win.7_3   /tmp/cdplayer_release/CDplayer/custom-convert.conf
+rm /tmp/cdplayer_release/CDplayer/Bin/killorphans.exe
 
 pushd /tmp/cdplayer_release
 chmod -R a+r *
