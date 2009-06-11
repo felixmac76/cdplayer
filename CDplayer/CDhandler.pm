@@ -64,6 +64,38 @@ use constant CDDRIVE_BUSY => 1;
 
 use constant MAX_LOG_SIZE => 25000;
 
+my $createToolhelp32Snapshot;
+my $process32First;
+my $process32Next;
+my $closeHandle;
+
+if ($osdetected eq 'win') {
+	require Win32;
+	require Win32::API;
+	require Win32::Process;
+
+	$createToolhelp32Snapshot = Win32::API->new('kernel32','CreateToolhelp32Snapshot',['N','N'],'I');
+	if(not defined $createToolhelp32Snapshot) {
+		$log->error( "Can't import API createToolhelp32Snapshot: $!");
+	}
+	$process32First 	= Win32::API->new('kernel32','Process32First',['N','P'],'I');
+	if(not defined $process32First) {
+		$log->error( "Can't import API process32First: $!");
+	}
+	$process32Next 	= Win32::API->new('kernel32','Process32Next',['N','P'],'I');
+	if(not defined $process32Next) {
+		$log->error( "Can't import API process32Next: $!");
+	}
+	$closeHandle		= Win32::API->new('kernel32', 'CloseHandle',['N'],'I');
+	if(not defined $closeHandle) {
+		$log->error( "Can't import API closeHandle: $!");
+	}
+}
+
+
+
+
+
 sub new
 {
 	my $class    = shift;
@@ -295,8 +327,9 @@ $log->debug ("Prefs UseMusicbrainz = " . $prefs->get('usemusicbrainz'));
 		$log->info("Searching CDDB for release data for $CddbDiscId"  );
 		my $cddburl = "http://freedb.freedb.org/~cddb/cddb.cgi?cmd=cddb+query+" . $CddbDiscId . $CddbQueryStr .		
 			"&hello=anonymous+localhost+SqueezeCenter+CDplayer1.0&proto=6";
-#	Uncomment nexty line to test UTF-8 representation 
+#	Uncomment one of next lines to test UTF-8 representation 
 #  		my $cddburl = "http://freedb.freedb.org/~cddb/cddb.cgi?cmd=cddb+query+24037f04+4+150+17532+33767+51227+897&hello=anonymous+localhost+MPlayer+dev-SVN-r26468-4.1.0&proto=6";
+#  		my $cddburl = "http://freedb.freedb.org/~cddb/cddb.cgi?cmd=cddb+query+510b0714+20+150+7843+13339+31192+51495+52274+74085+74723+89181+92525+110796+126118+126740+140504+140886+158211+171376+189339+206077+207669+2825&hello=anonymous+localhost+MPlayer+dev-SVN-r26468-4.1.0&proto=6";
 
 		$log->debug("cddb url = $cddburl");
 
@@ -636,29 +669,10 @@ $log->debug ("Prefs UseMusicbrainz = " . $prefs->get('usemusicbrainz'));
 sub killOrphans
 {
 	my $self = shift;
-	my $forkhandle;
 	if ($osdetected eq 'win') {
-		if (!defined($killorphan)) {
-			$log->debug("looking for killorphans full name ");
-			$killorphan = Slim::Utils::Misc::findbin("killorphans");
-			$log->debug("killorphans found at \'$killorphan\'");
-		}
-		
- 		my $app = shift;
-		my $command = "\"$killorphan\""; 
 
-		my $debugargs = " ";
-		if ($log->is_debug) {
-			$debugargs .= "-D";
-		}
-		elsif ($log->is_info){
-			$debugargs .= "-d";
-		} ;
-		
-		$forkhandle= Proc::Background->new($killorphan,"-ncdda2wav.exe",$debugargs ) || $log->debug("Killorphans exe forked: failed: $!");
-		
-		$log->info("Kill any cdda2wav orphans with \'$command\' ");
-	}
+		KillOrphanChildProcesses('cdda2wav.exe');
+	}	
 }
 
 
@@ -1052,6 +1066,82 @@ sub cdromstatus
 	return (0, $diskstatus,$cdrommsgs{$diskstatus});
 
 }
+
+sub KillOrphanChildProcesses( )
+{
+
+	my $orphanedExecutable = lc(shift) ;
+
+	my	($pe32Size,$pe32Usage,$pe32ProcessID,$pe32DefaultHeapID,$pe32ModuleID,
+		$pe32Threads,$pe32ParentProcessID,$pe32PriClassBase,$pe32Flags,$pe32ExeFile);
+	my	$processentry32;
+	my	$return;
+	my	$handle;
+	my	%processparent; 
+	my	%alivepids;
+	my	$exeparentpid;
+	my	$exepid;
+
+use constant TH32CS_SNAPPROCESS => 0x02;
+
+		$handle = $createToolhelp32Snapshot->Call(TH32CS_SNAPPROCESS, 0 );
+		$log->debug("Handle = $handle");
+		$pe32Size = 296;
+
+		$processentry32 = pack("LLLLLLLLLZ260",$pe32Size,$pe32Usage,$pe32ProcessID,$pe32DefaultHeapID,$pe32ModuleID,$pe32Threads,$pe32ParentProcessID,$pe32PriClassBase,$pe32Flags,$pe32ExeFile);
+		$return = $process32First->Call($handle,$processentry32);
+		if ($return != 1) {
+			$log->error("process32First return =$return");
+			return undef;
+		}
+
+	my $orphancount  = 0;
+	my $processcount = 0;
+
+		do { 
+			($pe32Size,$pe32Usage,$pe32ProcessID,$pe32DefaultHeapID,$pe32ModuleID,
+			$pe32Threads,$pe32ParentProcessID,$pe32PriClassBase,$pe32Flags,$pe32ExeFile) = unpack("LLLLLLLLLZ260",$processentry32);
+			$alivepids{$pe32ProcessID} = 1;
+#			$log->debug(sprintf("PID=%08x Parent Pid=%08x exe=%s",$pe32ProcessID,$pe32ParentProcessID,$pe32ExeFile));
+			if (lc($pe32ExeFile) eq $orphanedExecutable) {
+				$log->debug( "  Match Process ID =$pe32ProcessID  parent=$pe32ParentProcessID  target executable=$pe32ExeFile" );
+				$processparent{$pe32ProcessID} = $pe32ParentProcessID;
+				$orphancount++;
+			} else {
+#				$log->debug( "  No match Process ID =$pe32ProcessID ($pe32ExeFile)" );
+			}
+			$processcount++;
+		} while ( ($return = $process32Next->Call($handle,$processentry32)));		
+
+	$return = $closeHandle->Call($handle);
+
+	$log->debug( " Found $orphancount possible orphan processes out of $processcount processes"  );
+#	$log->debug("Dump processparent\n". Dumper(%processparent));
+
+	foreach my $pid ( keys %processparent) {
+		
+		if ($alivepids{$processparent{$pid}}) {
+			$log->debug( "Possible orphan $pid has alive parent pid ".$processparent{$pid});
+		} else {
+			$log->debug( "About to kill process $pid - whose parent pid ".$processparent{$pid});
+			my $processobj;
+			my $return = Win32::Process::Open($processobj,$pid,0);
+			if ($return == 0) {
+				$log->error("Failed to open process $pid");
+			} else {
+				$processobj->Kill(0);
+			}
+		}
+	}
+ return;
+}
+
+
+
+
+
+
+
 
 
 
