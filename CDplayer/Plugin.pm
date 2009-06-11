@@ -279,7 +279,7 @@ sub cliQuery {
 		if (!defined( $request->getParam('item_id')) ) {
 			$client->showBriefly({
 				'jive' => { 
-				'text'    => [ Slim::Utils::Strings::string('PLUGIN_CDPLAYER_LOADING_CD_WAIT'),
+				'text'    => [ '',Slim::Utils::Strings::string('PLUGIN_CDPLAYER_LOADING_CD_WAIT'),
 					   ],
 				}
 			});
