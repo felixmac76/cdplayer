@@ -30,7 +30,9 @@ my %defaults = (
 	pausestop  => 1,
 	cddbinexact  => 1,
 	amazonlocale    => 0,
-	usemusicbrainz => 0   # Use CDDB database
+	usemusicbrainz => 0,   # Use CDDB database
+	accesskeyid     => undef,	
+	secretkey       => undef,
 );
 
 
@@ -43,6 +45,15 @@ $prefs->migrate(2, sub {
 	1;
 });
 
+$prefs->migrate(3, sub {
+	$prefs->set('accesskeyid', undef);
+	$prefs->set('secretkey', undef);
+	1;
+});
+
+
+
+
 sub new {
 	my $class = shift;
 
@@ -50,16 +61,38 @@ sub new {
 }
 
 sub name {
-	return Slim::Web::HTTP::protectName('PLUGIN_CDPLAYER');
+# assumes at least SC 7.0
+	if ( substr($::VERSION,0,3) lt 7.4 ) {
+		return Slim::Web::HTTP::protectName('PLUGIN_CDPLAYER');
+	} else {
+	    # $::noweb to detect TinySC or user with no web interface
+	    if (!$::noweb) {
+		return Slim::Web::HTTP::CSRF->protectName('PLUGIN_CDPLAYER');
+	    }
+	}
+
+
 }
 
 sub page {
-	return Slim::Web::HTTP::protectURI('plugins/CDplayer/settings/basic.html');
+
+# assumes at least SC 7.0
+	if ( substr($::VERSION,0,3) lt 7.4 ) {
+		return Slim::Web::HTTP::protectURI('plugins/CDplayer/settings/basic.html');
+	} else {
+	    # $::noweb to detect TinySC or user with no web interface
+	    if (!$::noweb) {
+		return Slim::Web::HTTP::CSRF->protectURI('plugins/CDplayer/settings/basic.html');
+	    }
+	}
+
+
+
 }
 
 sub prefs {
 	$log->debug("Prefs called");
-	return ($prefs, qw( device cddevice pausestop usemusicbrainz cddbinexact amazonlocale ));
+	return ($prefs, qw( device cddevice pausestop usemusicbrainz cddbinexact amazonlocale accesskeyid secretkey ));
 }
 
 sub handler {

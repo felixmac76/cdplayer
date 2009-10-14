@@ -87,9 +87,11 @@ sub initPlugin()
 			weight         => 20,
 			id             => 'cdplayer',
 			node           => 'extras',
-			'icon-id'      => $class->_pluginDataFor('icon'),
 			displayWhenOff => 0,
-			window         => { titleStyle => 'album' },
+			window         => { 
+						'icon-id'  => $class->_pluginDataFor('icon'),
+						titleStyle => 'album'
+					 },
 			actions => {
 				go =>      {
 					'cmd' => ['cdplayer', 'items'],
@@ -112,7 +114,7 @@ sub shutdownPlugin
 	my $class = shift;
 
 	# unsubscribe
-	Slim::Control::Request::unsubscribe(\&pauseCallback);
+#	Slim::Control::Request::unsubscribe(\&pauseCallback);
 
 	$log->info("Plugin shutdown - kill any cdda2wav processes left behind");
 	$cdInfo->killOrphans();
@@ -177,8 +179,16 @@ sub webPages {
 # Add CDplayer menu item under Extras
 	Slim::Web::Pages->addPageLinks('plugins', { $title => $url });
 	
-#	Slim::Web::HTTP::protectURI($url);
-	Slim::Web::HTTP::addPageFunction($url, \&indexHandler );
+# assumes at least SC 7.0
+	if ( substr($::VERSION,0,3) lt 7.4 ) {
+		Slim::Web::HTTP::addPageFunction($url, \&indexHandler);
+	} else {
+	    # $::noweb to detect TinySC or user with no web interface
+	    if (!$::noweb) {
+		Slim::Web::Pages->addPageFunction($url, \&indexHandler);
+	    }
+	}
+
 }
 
 sub indexHandler

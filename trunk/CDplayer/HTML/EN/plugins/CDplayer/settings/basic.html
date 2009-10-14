@@ -42,6 +42,17 @@
 		[% END %]
 	[% END %]
 
+
+	[% WRAPPER settingGroup title="PLUGIN_CDPLAYER_ACCESSKEYID" desc="PLUGIN_CDPLAYER_ACCESSKEYID_DESC" %]
+		<input type="text" class="stdedit" name="pref_accesskeyid" id="accesskeyid" value="[% prefs.pref_accesskeyid %]" size="30" />
+	[% END %]
+
+	[% WRAPPER settingGroup title="PLUGIN_CDPLAYER_SECRETKEY" desc="PLUGIN_CDPLAYER_SECRETKEY_DESC" %]
+		<input type="text" class="stdedit" name="pref_secretkey" id="secretkey" value="[% prefs.pref_secretkey %]" size="50" />
+	[% END %]
+
+
+
 	[% WRAPPER settingGroup title="PLUGIN_CDPLAYER_AMAZONLOCALE" desc="PLUGIN_CDPLAYER_AMAZONLOCALE_DESC"%]
 		<input type="radio" name="pref_amazonlocale" value="0" [% IF prefs.pref_amazonlocale == 0 %]checked[% END %]>amazon.com<br/>
 		<input type="radio" name="pref_amazonlocale" value="1" [% IF prefs.pref_amazonlocale == 1 %]checked[% END %]>amazon.co.uk<br/>

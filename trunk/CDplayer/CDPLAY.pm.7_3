@@ -21,6 +21,7 @@ use URI::Escape;
 use HTML::Entities;
 use XML::Simple;
 use Tie::Cache::LRU;
+use Digest::SHA::PurePerl qw(hmac_sha256_base64);
 
 use Data::Dumper;
 
@@ -59,12 +60,19 @@ sub new {
 	my $class = shift;
 	my $args  = shift;
 
-	my $client     = $args->{'client'};
+	my $fullurl      = $args->{'url'};
+	my $client       = $args->{'client'};
 	my $transcoder   = $args->{'transcoder'};
+	my $song         = $args->{'song'};
 	my $command;
 
-	my $fullurl      = $args->{'url'} ;
-	my $seekdata     = $args->{'song'}->{'seekdata'};
+	my $seekdata;
+	if ($song->can("seekdata")) {
+		$seekdata     = $song->seekdata();
+	} else {
+		$seekdata     = $args->{'song'}->{'seekdata'};
+	}
+
 	my $offsetSectors;
 	
 	if (defined($seekdata)) {
@@ -75,7 +83,12 @@ sub new {
 		my $newtime = int($seekdata->{timeOffset});
 		$offsetSectors = int($seekdata->{timeOffset} * 75) ; # 75 sectors in a second.
 
-		$client->playingSong->{startOffset} = $newtime;
+		if ($client->playingSong->can('startOffset')) {
+			$client->playingSong->startOffset( $newtime);
+		} else {
+			$client->playingSong->{startOffset} = $newtime;
+		};
+
 		$client->master->remoteStreamStartTime( Time::HiRes::time() - $newtime );
 	}
 
@@ -315,6 +328,34 @@ sub getSeekData {
 my @amazonlocale =  ('.com', '.co.uk' , '.de', '.fr', '.ca');
 my $amazontimeout =  30;
 
+
+
+#  New required signing - see http://docs.amazonwebservices.com/AWSECommerceService/2009-03-31/DG/index.html?Query_QueryAuth.html
+#
+sub sign_query {
+
+	my $uri        = shift;
+	my @now        = gmtime;
+
+	my %query      = $uri->query_form;
+
+	$query{Timestamp} ||= sprintf('%04d-%02d-%02dT%02d:%02d:%02dZ',$now[5]+1900,$now[4]+1,@now[3,2,1,0]);
+	my $qstring = join '&', map {"$_=". uri_escape($query{$_},"^A-Za-z0-9\-_.~")} sort keys %query;
+	my $signme  = join chr(10),"GET",$uri->host,$uri->path,$qstring;
+	my $sig     = hmac_sha256_base64($signme, $prefs->get('secretkey'));
+
+#	Digest does not properly pad b64 strings
+
+	$sig     .= '=' while length($sig) % 4;
+	$sig      = uri_escape($sig,"^A-Za-z0-9\-_.~");
+	$qstring .= "&Signature=$sig";
+	$log->info("Amazon query string=$qstring");
+	$uri->query( $qstring );
+
+	return $uri->as_string;
+}
+
+
 sub startCustomAmazonSearch 
 {
 	my $class        = shift;
@@ -346,11 +387,20 @@ sub startCustomAmazonSearch
 	} 
 
 	$log->debug("Search string=\"$searchstring\"");
-# See Amazon Developer Guide for URL syntax http://docs.amazonwebservices.com/AWSECommerceService/latest/DG/
+## See Amazon Developer Guide for URL syntax http://docs.amazonwebservices.com/AWSECommerceService/latest/DG/
 
-	my $url = 'http://ecs.amazonaws' . @amazonlocale[$prefs->get('amazonlocale')]  .
-	      "/onca/xml?Service=AWSECommerceService&Version=2007-10-29&Operation=ItemSearch&AssociateTag=webservices-20&AWSAccessKeyId=11ZKJS8X1ETSTJ6MT802&$searchstring&SearchIndex=Music&ResponseGroup=Small,Images";
-	$log->info("Amazon search url ".$url);
+#	my $url = 'http://ecs.amazonaws' . @amazonlocale[$prefs->get('amazonlocale')]  .
+#	      "/onca/xml?Service=AWSECommerceService&Version=2007-10-29&Operation=ItemSearch&AssociateTag=webservices-20&AWSAccessKeyId=11ZKJS8X1ETSTJ6MT802&$searchstring&SearchIndex=Music&ResponseGroup=Small,Images";
+
+# See Amazon Developer Guide for URL syntax http://docs.amazonwebservices.com/AWSECommerceService/latest/DG/
+	my $url = 'http://ecs.amazonaws' . @amazonlocale[$prefs->get('amazonlocale')] .
+			 "/onca/xml?Service=AWSECommerceService&Version=2007-10-29&Operation=ItemSearch&AssociateTag=webservices-20&AWSAccessKeyId=".$prefs->get('accesskeyid')."&$searchstring&SearchIndex=Music&ResponseGroup=Small,Images";
+
+	my $rooturl = URI->new($url) ;
+	my $signedurl = sign_query($rooturl);
+	$log->info("Amazon search signed url ".$signedurl);
+
+
 	my $http = Slim::Networking::SimpleAsyncHTTP->new(
 				\&searchAmazonOK, \&searchAmazonError,
 				{
@@ -358,7 +408,7 @@ sub startCustomAmazonSearch
 					class => $class,
 					cdinfo => $cdInfo,
 				} );
-	$http->get($url);
+	$http->get($signedurl);
 
 }
 
