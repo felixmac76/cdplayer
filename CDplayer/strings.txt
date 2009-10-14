@@ -200,3 +200,15 @@ PLUGIN_CDPLAYER_AMAZONLOCALE_DESC
 
 PLUGIN_CDPLAYER_SETTINGS_LOCALE
 	EN	Amazon Locale
+
+PLUGIN_CDPLAYER_ACCESSKEYID
+	EN	Amazon Access Key ID
+
+PLUGIN_CDPLAYER_ACCESSKEYID_DESC
+	EN	Amazon Access Key ID as provided by Amazon in the Access Identifiers web page.
+
+PLUGIN_CDPLAYER_SECRETKEY
+	EN	Amazon secret key
+
+PLUGIN_CDPLAYER_SECRETKEY_DESC
+	EN	Amazon secret key as provided by Amazon in the Access Identifiers web page under Secret Access key .

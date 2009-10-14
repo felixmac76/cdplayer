@@ -1,17 +1,17 @@
 # 
 # cdd2wav  
 #
-cdplay wav * *
+cdplay pcm * *
 	# R
 	[cdda2wavosx.sh] --speed $CDSPEED$ --output-format raw -gui output-endianess=little --quiet device=$CDDEVICE$ -track $CDTRACK$ $CDOFFSET$
 
 cdplay mp3 * *
 	# RB:{BITRATE=-B %B}
-	[cdda2wavosx.sh] --speed $CDSPEED$ --output-format raw -gui output-endianess=little --quiet device=$CDDEVICE$ -track $CDTRACK$ $CDOFFSET$ - | [lame] --silent -r -x -q $QUALITY$ -b $BITRATE$ - -
+	[cdda2wavosx.sh] --speed $CDSPEED$ --output-format wav -gui output-endianess=little --quiet device=$CDDEVICE$ -track $CDTRACK$ $CDOFFSET$ - | [lame] --silent -q $QUALITY$ -v $BITRATE$ - -
 
 cdplay flc * *
 	# R
-	[cdda2wavosx.sh] --speed $CDSPEED$ --output-format raw -gui output-endianess=little --quiet device=$CDDEVICE$ -track $CDTRACK$ $CDOFFSET$ - | [flac] -cs --totally-silent --endian=little --channels=2 --sign=signed --bps=16 --sample-rate=44100 --compression-level-0 -
+	[cdda2wavosx.sh] --speed $CDSPEED$ --output-format wav -gui output-endianess=little --quiet device=$CDDEVICE$ -track $CDTRACK$ $CDOFFSET$ - | [flac] -cs --totally-silent --compression-level-0 -
 
 
 
